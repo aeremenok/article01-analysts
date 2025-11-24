@@ -1,0 +1,1869 @@
+openapi: 3.0.3
+info:
+  title: CRM система НКО
+  version: 1.0.0
+  description: API для системы управления клиентами НКО с возможностью работы с документами, реестрами и пользователями
+
+servers:
+  - url: https://api.nko.ru/v1
+    description: Production сервер
+
+paths:
+  # Физические лица
+  /physical-persons:
+    get:
+      summary: Получить список физических лиц
+      description: Получить список всех физических лиц с возможностью фильтрации и сортировки
+      tags:
+        - Физические лица
+      parameters:
+        - name: page
+          in: query
+          description: Номер страницы
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: limit
+          in: query
+          description: Количество элементов на странице
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: search
+          in: query
+          description: Поисковый запрос по имени, фамилии, email
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: Фильтр по статусу учетной записи
+          required: false
+          schema:
+            type: string
+            enum: [активна, неактивна, заблокирована]
+        - name: first_name
+          in: query
+          description: Фильтр по имени
+          required: false
+          schema:
+            type: string
+        - name: last_name
+          in: query
+          description: Фильтр по фамилии
+          required: false
+          schema:
+            type: string
+        - name: email
+          in: query
+          description: Фильтр по email
+          required: false
+          schema:
+            type: string
+        - name: birth_date_from
+          in: query
+          description: Фильтр по дате рождения (с)
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: birth_date_to
+          in: query
+          description: Фильтр по дате рождения (по)
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PhysicalPerson'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      summary: Создать нового физического лица
+      description: Регистрация нового физического лица в системе
+      tags:
+        - Физические лица
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhysicalPersonCreate'
+      responses:
+        '201':
+          description: Физическое лицо создано успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhysicalPerson'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /physical-persons/{id}:
+    get:
+      summary: Получить информацию о физическом лице
+      description: Получить детальную информацию о конкретном физическом лице
+      tags:
+        - Физические лица
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhysicalPerson'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    get:
+      summary: Получить информацию личного кабинета
+      description: Получить информацию для личного кабинета (информация о пользователе и его документы)
+      tags:
+        - Физические лица
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Успешный ответ с информацией личного кабинета
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhysicalPersonDashboard'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Обновить информацию о физическом лице
+      description: Обновление информации о физическом лице
+      tags:
+        - Физические лица
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhysicalPersonUpdate'
+      responses:
+        '200':
+          description: Информация о физическом лице обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhysicalPerson'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Назначить роль физическому лицу
+      description: Назначение роли пользователю с типом physical_person
+      tags:
+        - Физические лица
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhysicalPersonRoleUpdate'
+      responses:
+        '200':
+          description: Роль физического лица обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhysicalPerson'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Персональные папки
+  /personal-folders:
+    get:
+      summary: Получить список персональных папок
+      description: Получить список всех персональных папок
+      tags:
+        - Персональные папки
+      parameters:
+        - name: physical_person_id
+          in: query
+          description: ID физического лица
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          description: Фильтр по статусу
+          required: false
+          schema:
+            type: string
+            enum: [активна, архивирована]
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PersonalFolder'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      summary: Создать персональную папку
+      description: Создание новой персональной папки для физического лица
+      tags:
+        - Персональные папки
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PersonalFolderCreate'
+      responses:
+        '201':
+          description: Персональная папка создана успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonalFolder'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      summary: Создать папку для физического лица
+      description: Создание персональной папки при регистрации нового ФЛ
+      tags:
+        - Персональные папки
+      parameters:
+        - name: physical_person_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '201':
+          description: Персональная папка создана успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonalFolder'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /personal-folders/{id}:
+    get:
+      summary: Получить информацию о персональной папке
+      description: Получить детальную информацию о персональной папке
+      tags:
+        - Персональные папки
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonalFolder'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Обновить информацию о персональной папке
+      description: Обновление информации о персональной папке
+      tags:
+        - Персональные папки
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PersonalFolderUpdate'
+      responses:
+        '200':
+          description: Информация о папке обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonalFolder'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Документы
+  /documents:
+    get:
+      summary: Получить список документов
+      description: Получить список всех документов с возможностью фильтрации
+      tags:
+        - Документы
+      parameters:
+        - name: personal_folder_id
+          in: query
+          description: ID персональной папки
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: physical_person_id
+          in: query
+          description: ID физического лица
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          description: Фильтр по статусу
+          required: false
+          schema:
+            type: string
+            enum: [активен, удален]
+        - name: search
+          in: query
+          description: Поисковый запрос по названию или описанию
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Document'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      summary: Загрузить документ
+      description: Загрузка нового документа в персональную папку
+      tags:
+        - Документы
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentCreate'
+      responses:
+        '201':
+          description: Документ загружен успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      summary: Загрузить документы пакетно
+      description: Массовая загрузка документов
+      tags:
+        - Документы
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentBulkCreate'
+      responses:
+        '201':
+          description: Документы загружены успешно
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Document'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /documents/{id}:
+    get:
+      summary: Получить информацию о документе
+      description: Получить детальную информацию о документе
+      tags:
+        - Документы
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    get:
+      summary: Скачать документ
+      description: Скачать документ по ID
+      tags:
+        - Документы
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Успешный ответ с файлом
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Удалить документ
+      description: Удаление документа (пометка как удаленный)
+      tags:
+        - Документы
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Документ удален успешно
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Администраторы
+  /admins:
+    get:
+      summary: Получить список администраторов
+      description: Получить список всех администраторов
+      tags:
+        - Администраторы
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Admin'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      summary: Создать нового администратора
+      description: Регистрация нового администратора
+      tags:
+        - Администраторы
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminCreate'
+      responses:
+        '201':
+          description: Администратор создан успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Admin'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admins/{id}:
+    get:
+      summary: Получить информацию об администраторе
+      description: Получить детальную информацию об администраторе
+      tags:
+        - Администраторы
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Admin'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Обновить информацию об администраторе
+      description: Обновление информации об администраторе
+      tags:
+        - Администраторы
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUpdate'
+      responses:
+        '200':
+          description: Информация об администраторе обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Admin'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Назначить роль администратору
+      description: Назначение роли пользователю с типом admin
+      tags:
+        - Администраторы
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminRoleUpdate'
+      responses:
+        '200':
+          description: Роль администратора обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Admin'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Сессии
+  /sessions:
+    get:
+      summary: Получить список сессий
+      description: Получить список всех сессий пользователей
+      tags:
+        - Сессии
+      parameters:
+        - name: user_id
+          in: query
+          description: ID пользователя (физического лица или администратора)
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: user_type
+          in: query
+          description: Тип пользователя
+          required: false
+          schema:
+            type: string
+            enum: [physical_person, admin]
+        - name: status
+          in: query
+          description: Фильтр по статусу
+          required: false
+          schema:
+            type: string
+            enum: [активна, завершена, истекла]
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Session'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      summary: Создать новую сессию (вход)
+      description: Создание новой сессии пользователя при входе в систему
+      tags:
+        - Сессии
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionCreate'
+      responses:
+        '201':
+          description: Сессия создана успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /sessions/{id}:
+    get:
+      summary: Получить информацию о сессии
+      description: Получить детальную информацию о сессии
+      tags:
+        - Сессии
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Завершить сессию
+      description: Завершение текущей сессии пользователя
+      tags:
+        - Сессии
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Сессия завершена успешно
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Реестры
+  /registries:
+    get:
+      summary: Получить список реестров
+      description: Получить список всех реестров физических лиц
+      tags:
+        - Реестры
+      parameters:
+        - name: status
+          in: query
+          description: Фильтр по статусу
+          required: false
+          schema:
+            type: string
+            enum: [активен, архивирован]
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Registry'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      summary: Создать новый реестр
+      description: Создание нового реестра физических лиц
+      tags:
+        - Реестры
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistryCreate'
+      responses:
+        '201':
+          description: Реестр создан успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Registry'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /registries/{id}:
+    get:
+      summary: Получить информацию о реестре
+      description: Получить детальную информацию о реестре
+      tags:
+        - Реестры
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Registry'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Обновить информацию о реестре
+      description: Обновление информации о реестре
+      tags:
+        - Реестры
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistryUpdate'
+      responses:
+        '200':
+          description: Информация о реестре обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Registry'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Уведомления
+  /notifications:
+    get:
+      summary: Получить список уведомлений
+      description: Получить список всех уведомлений
+      tags:
+        - Уведомления
+      parameters:
+        - name: recipient_id
+          in: query
+          description: ID получателя (физического лица или администратора)
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: recipient_type
+          in: query
+          description: Тип получателя
+          required: false
+          schema:
+            type: string
+            enum: [physical_person, admin]
+        - name: status
+          in: query
+          description: Фильтр по статусу
+          required: false
+          schema:
+            type: string
+            enum: [ожидает, отправлено, ошибки]
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      summary: Создать новое уведомление
+      description: Создание нового уведомления для пользователя
+      tags:
+        - Уведомления
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationCreate'
+      responses:
+        '201':
+          description: Уведомление создано успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /notifications/{id}:
+    get:
+      summary: Получить информацию об уведомлении
+      description: Получить детальную информацию об уведомлении
+      tags:
+        - Уведомления
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Права доступа
+  /permissions:
+    get:
+      summary: Получить список прав доступа
+      description: Получить список всех доступных прав
+      tags:
+        - Права доступа
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Permission'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      summary: Создать новые права доступа
+      description: Создание новых прав доступа
+      tags:
+        - Права доступа
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PermissionCreate'
+      responses:
+        '201':
+          description: Права доступа созданы успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Permission'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /permissions/{id}:
+    get:
+      summary: Получить информацию о правах доступа
+      description: Получить детальную информацию о правах доступа
+      tags:
+        - Права доступа
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Permission'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Обновить информацию о правах доступа
+      description: Обновление информации о правах доступа
+      tags:
+        - Права доступа
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PermissionUpdate'
+      responses:
+        '200':
+          description: Информация о правах обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Permission'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Логи операций
+  /operation-logs:
+    get:
+      summary: Получить список логов операций
+      description: Получить список всех операций пользователей
+      tags:
+        - Логи операций
+      parameters:
+        - name: user_id
+          in: query
+          description: ID пользователя (физического лица или администратора)
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: user_type
+          in: query
+          description: Тип пользователя
+          required: false
+          schema:
+            type: string
+            enum: [physical_person, admin]
+        - name: operation_type
+          in: query
+          description: Тип операции
+          required: false
+          schema:
+            type: string
+            enum: [вход, выход, создание, изменение, удаление]
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OperationLog'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # Поисковые запросы
+  /search-queries:
+    get:
+      summary: Получить список поисковых запросов
+      description: Получить список всех поисковых запросов
+      tags:
+        - Поисковые запросы
+      parameters:
+        - name: user_id
+          in: query
+          description: ID пользователя (физического лица или администратора)
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: user_type
+          in: query
+          description: Тип пользователя
+          required: false
+          schema:
+            type: string
+            enum: [physical_person, admin]
+        - name: status
+          in: query
+          description: Фильтр по статусу
+          required: false
+          schema:
+            type: string
+            enum: [ожидает, выполнен, ошибка]
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SearchQuery'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+components:
+  schemas:
+    # Сущности системы
+    PhysicalPerson:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        first_name:
+          type: string
+        last_name:
+          type: string
+        middle_name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        birth_date:
+          type: string
+          format: date
+        passport_series_number:
+          type: string
+        passport_issued_by:
+          type: string
+        inn:
+          type: string
+        snils:
+          type: string
+        account_status:
+          type: string
+          enum: [активна, неактивна, заблокирована]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        last_login:
+          type: string
+          format: date-time
+
+    PhysicalPersonCreate:
+      type: object
+      required:
+        - first_name
+        - last_name
+        - email
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        middle_name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        birth_date:
+          type: string
+          format: date
+        passport_series_number:
+          type: string
+        passport_issued_by:
+          type: string
+        inn:
+          type: string
+        snils:
+          type: string
+
+    PhysicalPersonUpdate:
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        middle_name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        birth_date:
+          type: string
+          format: date
+        passport_series_number:
+          type: string
+        passport_issued_by:
+          type: string
+        inn:
+          type: string
+        snils:
+          type: string
+        account_status:
+          type: string
+          enum: [активна, неактивна, заблокирована]
+
+    PersonalFolder:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        physical_person_id:
+          type: string
+          format: uuid
+        folder_path:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        access_rights:
+          type: string
+          enum: [чтение, запись, полный доступ]
+        status:
+          type: string
+          enum: [активна, архивирована]
+
+    PersonalFolderCreate:
+      type: object
+      required:
+        - physical_person_id
+        - name
+        - folder_path
+      properties:
+        physical_person_id:
+          type: string
+          format: uuid
+        folder_path:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        access_rights:
+          type: string
+          enum: [чтение, запись, полный доступ]
+
+    PersonalFolderUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        access_rights:
+          type: string
+          enum: [чтение, запись, полный доступ]
+        status:
+          type: string
+          enum: [активна, архивирована]
+
+    Document:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        personal_folder_id:
+          type: string
+          format: uuid
+        physical_person_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        file_type:
+          type: string
+        size:
+          type: integer
+        file_path:
+          type: string
+        md5_hash:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [активен, удален]
+        metadata:
+          type: object
+
+    DocumentCreate:
+      type: object
+      required:
+        - personal_folder_id
+        - name
+        - file_path
+      properties:
+        personal_folder_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        file_type:
+          type: string
+        size:
+          type: integer
+        file_path:
+          type: string
+        metadata:
+          type: object
+
+    Admin:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        login:
+          type: string
+        email:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        role:
+          type: string
+          enum: [администратор, суперпользователь]
+        status:
+          type: string
+          enum: [активен, неактивен]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        last_login:
+          type: string
+          format: date-time
+
+    AdminCreate:
+      type: object
+      required:
+        - login
+        - email
+        - first_name
+        - last_name
+      properties:
+        login:
+          type: string
+        email:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        role:
+          type: string
+          enum: [администратор, суперпользователь]
+
+    AdminUpdate:
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        role:
+          type: string
+          enum: [администратор, суперпользователь]
+        status:
+          type: string
+          enum: [активен, неактивен]
+
+    Session:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        user_type:
+          type: string
+          enum: [physical_person, admin]
+        token:
+          type: string
+        ip_address:
+          type: string
+        user_agent:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [активна, завершена, истекла]
+
+    SessionCreate:
+      type: object
+      required:
+        - user_id
+        - user_type
+        - token
+        - expires_at
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        user_type:
+          type: string
+          enum: [physical_person, admin]
+        token:
+          type: string
+        ip_address:
+          type: string
+        user_agent:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+
+    Registry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        creator_id:
+          type: string
+          format: uuid
+        filter_parameters:
+          type: object
+        sort_parameters:
+          type: object
+        status:
+          type: string
+          enum: [активен, архивирован]
+
+    RegistryCreate:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        creator_id:
+          type: string
+          format: uuid
+        filter_parameters:
+          type: object
+        sort_parameters:
+          type: object
+
+    RegistryUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        filter_parameters:
+          type: object
+        sort_parameters:
+          type: object
+        status:
+          type: string
+          enum: [активен, архивирован]
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        recipient_id:
+          type: string
+          format: uuid
+        recipient_type:
+          type: string
+          enum: [physical_person, admin]
+        subject:
+          type: string
+        content:
+          type: string
+        notification_type:
+          type: string
+          enum: [системное, документы, другие]
+        created_at:
+          type: string
+          format: date-time
+        sent_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [ожидает, отправлено, ошибки]
+        user_preferences:
+          type: object
+
+    NotificationCreate:
+      type: object
+      required:
+        - recipient_id
+        - recipient_type
+        - subject
+        - content
+      properties:
+        recipient_id:
+          type: string
+          format: uuid
+        recipient_type:
+          type: string
+          enum: [physical_person, admin]
+        subject:
+          type: string
+        content:
+          type: string
+        notification_type:
+          type: string
+          enum: [системное, документы, другие]
+        user_preferences:
+          type: object
+
+    Permission:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        role_name:
+          type: string
+        description:
+          type: string
+        privileges:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [активна, неактивна]
+
+    PermissionCreate:
+      type: object
+      required:
+        - role_name
+        - privileges
+      properties:
+        role_name:
+          type: string
+        description:
+          type: string
+        privileges:
+          type: array
+          items:
+            type: string
+
+    PermissionUpdate:
+      type: object
+      properties:
+        description:
+          type: string
+        privileges:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [активна, неактивна]
+
+    OperationLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        user_type:
+          type: string
+          enum: [physical_person, admin]
+        operation_type:
+          type: string
+          enum: [вход, выход, создание, изменение, удаление]
+        operation_description:
+          type: string
+        operation_at:
+          type: string
+          format: date-time
+        ip_address:
+          type: string
+        data_before:
+          type: object
+        data_after:
+          type: object
+        success:
+          type: boolean
+
+    SearchQuery:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        user_type:
+          type: string
+          enum: [physical_person, admin]
+        query:
+          type: string
+        search_at:
+          type: string
+          format: date-time
+        results:
+          type: array
+          items:
+            type: object
+        result_count:
+          type: integer
+        filter_parameters:
+          type: object
+        sort_parameters:
+          type: object
+        status:
+          type: string
+          enum: [ожидает, выполнен, ошибка]
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        pages:
+          type: integer
+
+  responses:
+    Unauthorized:
+      description: Неавторизованный доступ
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Unauthorized"
+              message:
+                type: string
+                example: "Необходима авторизация"
+
+    Forbidden:
+      description: Доступ запрещён
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Forbidden"
+              message:
+                type: string
+                example: "У вас нет прав доступа к этому ресурсу"
+
+    BadRequest:
+      description: Некорректный запрос
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Bad Request"
+              message:
+                type: string
+                example: "Некорректные данные запроса"
+
+    NotFound:
+      description: Ресурс не найден
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Not Found"
+              message:
+                type: string
+                example: "Ресурс не найден"
+
+tags:
+  - name: Физические лица
+    description: Операции с физическими лицами
+  - name: Персональные папки
+    description: Операции с персональными папками
+  - name: Документы
+    description: Операции с документами
+  - name: Администраторы
+    description: Операции с администраторами
+  - name: Сессии
+    description: Операции со сессиями пользователей
+  - name: Реестры
+    description: Операции с реестрами
+  - name: Уведомления
+    description: Операции с уведомлениями
+  - name: Права доступа
+    description: Операции с правами доступа
+  - name: Логи операций
+    description: Логи операций пользователей
+  - name: Поисковые запросы
+    description: Поисковые запросы к реестрам

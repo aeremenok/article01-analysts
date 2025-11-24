@@ -1,0 +1,180 @@
+{
+  "actors": [
+    {
+      "id": "actor1",
+      "name": "Физическое лицо (ФЛ)",
+      "type": "person"
+    },
+    {
+      "id": "actor2", 
+      "name": "Администратор НКО",
+      "type": "person"
+    },
+    {
+      "id": "actor3",
+      "name": "Система",
+      "type": "system"
+    }
+  ],
+  "activities": [
+    {
+      "id": "act1",
+      "text": "Регистрация нового физического лица",
+      "type": "task",
+      "actor": "actor2",
+      "follows": [],
+      "conditions": []
+    },
+    {
+      "id": "act2",
+      "text": "Создание персональной папки для ФЛ",
+      "type": "task",
+      "actor": "actor3",
+      "follows": ["act1"],
+      "conditions": []
+    },
+    {
+      "id": "act3",
+      "text": "Загрузка документов в личный кабинет",
+      "type": "task",
+      "actor": "actor1",
+      "follows": ["act2"],
+      "conditions": []
+    },
+    {
+      "id": "act4",
+      "text": "Просмотр документов в личном кабинете",
+      "type": "task",
+      "actor": "actor1",
+      "follows": ["act3"],
+      "conditions": []
+    },
+    {
+      "id": "act5",
+      "text": "Доступ к личному кабинету ФЛ",
+      "type": "task",
+      "actor": "actor1",
+      "follows": ["act3"],
+      "conditions": []
+    },
+    {
+      "id": "act6",
+      "text": "Формирование реестра физических лиц",
+      "type": "task",
+      "actor": "actor2",
+      "follows": [],
+      "conditions": []
+    },
+    {
+      "id": "act7",
+      "text": "Фильтрация реестров по различным атрибутам",
+      "type": "task",
+      "actor": "actor2",
+      "follows": ["act6"],
+      "conditions": []
+    },
+    {
+      "id": "act8",
+      "text": "Сортировка реестров",
+      "type": "task",
+      "actor": "actor2",
+      "follows": ["act6"],
+      "conditions": []
+    },
+    {
+      "id": "act9",
+      "text": "Поиск по реестрам физических лиц",
+      "type": "task",
+      "actor": "actor2",
+      "follows": ["act6"],
+      "conditions": []
+    },
+    {
+      "id": "act10",
+      "text": "Проверка прав доступа к документам",
+      "type": "decision",
+      "actor": "actor3",
+      "follows": ["act3"],
+      "conditions": []
+    },
+    {
+      "id": "act11",
+      "text": "Создание уведомлений о новых документах",
+      "type": "task",
+      "actor": "actor3",
+      "follows": ["act3"],
+      "conditions": []
+    }
+  ],
+  "flows": [
+    {
+      "from": "act1",
+      "to": "act2",
+      "type": "sequence"
+    },
+    {
+      "from": "act2",
+      "to": "act3",
+      "type": "sequence"
+    },
+    {
+      "from": "act3",
+      "to": "act4",
+      "type": "sequence"
+    },
+    {
+      "from": "act3",
+      "to": "act5",
+      "type": "sequence"
+    },
+    {
+      "from": "act3",
+      "to": "act10",
+      "type": "sequence"
+    },
+    {
+      "from": "act10",
+      "to": "act4",
+      "type": "conditional",
+      "condition": "Права доступа разрешены"
+    },
+    {
+      "from": "act10",
+      "to": "act11",
+      "type": "conditional",
+      "condition": "Права доступа запрещены"
+    },
+    {
+      "from": "act6",
+      "to": "act7",
+      "type": "sequence"
+    },
+    {
+      "from": "act6",
+      "to": "act8",
+      "type": "sequence"
+    },
+    {
+      "from": "act6",
+      "to": "act9",
+      "type": "sequence"
+    }
+  ],
+  "data_objects": [
+    {
+      "id": "data1",
+      "name": "Персональная папка",
+      "used_by": ["act2"]
+    },
+    {
+      "id": "data2",
+      "name": "Документы",
+      "used_by": ["act3", "act4"]
+    },
+    {
+      "id": "data3",
+      "name": "Реестр физических лиц",
+      "used_by": ["act6", "act7", "act8", "act9"]
+    }
+  ]
+}

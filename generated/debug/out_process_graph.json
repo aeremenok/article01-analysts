@@ -1,0 +1,225 @@
+{
+  "nodes": [
+    {
+      "id": "StartEvent_1",
+      "type": "startEvent",
+      "name": "Начало процесса",
+      "lane": "actor2",
+      "outgoing": ["Flow_1"]
+    },
+    {
+      "id": "Task_1",
+      "type": "userTask",
+      "name": "Регистрация нового физического лица",
+      "lane": "actor2",
+      "incoming": ["Flow_1"],
+      "outgoing": ["Flow_2"]
+    },
+    {
+      "id": "Task_2",
+      "type": "serviceTask",
+      "name": "Создание персональной папки для ФЛ",
+      "lane": "actor3",
+      "incoming": ["Flow_2"],
+      "outgoing": ["Flow_3"]
+    },
+    {
+      "id": "Task_3",
+      "type": "userTask",
+      "name": "Загрузка документов в личный кабинет",
+      "lane": "actor1",
+      "incoming": ["Flow_3"],
+      "outgoing": ["Flow_4", "Flow_5", "Flow_6"]
+    },
+    {
+      "id": "Task_4",
+      "type": "userTask",
+      "name": "Просмотр документов в личном кабинете",
+      "lane": "actor1",
+      "incoming": ["Flow_4"],
+      "outgoing": ["Flow_7"]
+    },
+    {
+      "id": "Task_5",
+      "type": "userTask",
+      "name": "Доступ к личному кабинету ФЛ",
+      "lane": "actor1",
+      "incoming": ["Flow_5"],
+      "outgoing": ["Flow_8"]
+    },
+    {
+      "id": "Gateway_1",
+      "type": "exclusiveGateway",
+      "name": "Проверка прав доступа к документам",
+      "lane": "actor3",
+      "incoming": ["Flow_6"],
+      "outgoing": ["Flow_9", "Flow_10"]
+    },
+    {
+      "id": "Task_6",
+      "type": "serviceTask",
+      "name": "Создание уведомлений о новых документах",
+      "lane": "actor3",
+      "incoming": ["Flow_10"],
+      "outgoing": ["Flow_11"]
+    },
+    {
+      "id": "Task_7",
+      "type": "userTask",
+      "name": "Формирование реестра физических лиц",
+      "lane": "actor2",
+      "incoming": ["Flow_7"],
+      "outgoing": ["Flow_12", "Flow_13", "Flow_14"]
+    },
+    {
+      "id": "Task_8",
+      "type": "userTask",
+      "name": "Фильтрация реестров по различным атрибутам",
+      "lane": "actor2",
+      "incoming": ["Flow_12"],
+      "outgoing": ["Flow_15"]
+    },
+    {
+      "id": "Task_9",
+      "type": "userTask",
+      "name": "Сортировка реестров",
+      "lane": "actor2",
+      "incoming": ["Flow_13"],
+      "outgoing": ["Flow_16"]
+    },
+    {
+      "id": "Task_10",
+      "type": "userTask",
+      "name": "Поиск по реестрам физических лиц",
+      "lane": "actor2",
+      "incoming": ["Flow_14"],
+      "outgoing": ["Flow_17"]
+    },
+    {
+      "id": "EndEvent_1",
+      "type": "endEvent",
+      "name": "Конец процесса",
+      "lane": "actor1",
+      "incoming": ["Flow_9"]
+    },
+    {
+      "id": "EndEvent_2",
+      "type": "endEvent",
+      "name": "Конец процесса",
+      "lane": "actor2",
+      "incoming": ["Flow_15", "Flow_16", "Flow_17"]
+    }
+  ],
+  "edges": [
+    {
+      "id": "Flow_1",
+      "source": "StartEvent_1",
+      "target": "Task_1"
+    },
+    {
+      "id": "Flow_2",
+      "source": "Task_1",
+      "target": "Task_2"
+    },
+    {
+      "id": "Flow_3",
+      "source": "Task_2",
+      "target": "Task_3"
+    },
+    {
+      "id": "Flow_4",
+      "source": "Task_3",
+      "target": "Task_4"
+    },
+    {
+      "id": "Flow_5",
+      "source": "Task_3",
+      "target": "Task_5"
+    },
+    {
+      "id": "Flow_6",
+      "source": "Task_3",
+      "target": "Gateway_1"
+    },
+    {
+      "id": "Flow_9",
+      "source": "Gateway_1",
+      "target": "EndEvent_1",
+      "condition": "Права доступа разрешены"
+    },
+    {
+      "id": "Flow_10",
+      "source": "Gateway_1",
+      "target": "Task_6",
+      "condition": "Права доступа запрещены"
+    },
+    {
+      "id": "Flow_11",
+      "source": "Task_6",
+      "target": "EndEvent_2"
+    },
+    {
+      "id": "Flow_7",
+      "source": "Task_4",
+      "target": "Task_7"
+    },
+    {
+      "id": "Flow_8",
+      "source": "Task_5",
+      "target": "Task_7"
+    },
+    {
+      "id": "Flow_12",
+      "source": "Task_7",
+      "target": "Task_8"
+    },
+    {
+      "id": "Flow_13",
+      "source": "Task_7",
+      "target": "Task_9"
+    },
+    {
+      "id": "Flow_14",
+      "source": "Task_7",
+      "target": "Task_10"
+    },
+    {
+      "id": "Flow_15",
+      "source": "Task_8",
+      "target": "EndEvent_2"
+    },
+    {
+      "id": "Flow_16",
+      "source": "Task_9",
+      "target": "EndEvent_2"
+    },
+    {
+      "id": "Flow_17",
+      "source": "Task_10",
+      "target": "EndEvent_2"
+    }
+  ],
+  "lanes": [
+    {
+      "id": "Lane_1",
+      "name": "Физическое лицо (ФЛ)",
+      "actor": "actor1"
+    },
+    {
+      "id": "Lane_2",
+      "name": "Администратор НКО",
+      "actor": "actor2"
+    },
+    {
+      "id": "Lane_3",
+      "name": "Система",
+      "actor": "actor3"
+    }
+  ],
+  "validation": {
+    "all_connected": true,
+    "has_start": true,
+    "has_end": true,
+    "deadlocks": []
+  }
+}

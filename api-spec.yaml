@@ -1,0 +1,261 @@
+---
+openapi: 3.0.0
+info:
+  title: Room Booking API
+  version: 1.0.0
+servers:
+  - url: https://example.com/api
+paths:
+  /rooms:
+    get:
+      summary: Список доступных комнат
+      description: Возвращает список всех доступных комнат с их деталями.
+      responses:
+        '200':
+          description: Успешный ответ со списком комнат
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Room'
+        '401':
+          description: Неавторизованный доступ
+        '500':
+          description: Внутренняя ошибка сервера
+      security:
+        - bearerAuth: []
+  /rooms/{roomId}/availability:
+    get:
+      summary: Проверить доступность комнаты на определенные даты
+      description: Проверяет доступность конкретной комнаты на заданные даты.
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          description: Идентификатор комнаты
+          schema:
+            type: integer
+        - name: startDate
+          in: query
+          required: true
+          description: Дата начала периода проверки доступности
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: true
+          description: Дата окончания периода проверки доступности
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Комната доступна или нет
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailabilityResponse'
+        '400':
+          description: Некорректный запрос
+        '401':
+          description: Неавторизованный доступ
+        '404':
+          description: Комнаты не существует
+        '500':
+          description: Внутренняя ошибка сервера
+      security:
+        - bearerAuth: []
+  /bookings:
+    post:
+      summary: Создать новое бронирование
+      description: Создание нового бронирования комнаты на указанные даты.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookingRequest'
+      responses:
+        '201':
+          description: Бронирование успешно создано
+          headers:
+            Location:
+              description: URL созданного ресурса
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingResponse'
+        '400':
+          description: Некорректный запрос
+        '401':
+          description: Неавторизованный доступ
+        '409':
+          description: Конфликт дат бронирования
+        '500':
+          description: Внутренняя ошибка сервера
+      security:
+        - bearerAuth: []
+  /bookings/{bookingId}:
+    delete:
+      summary: Отменить существующее бронирование
+      description: Удаление существующего бронирования по его идентификатору.
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          description: Идентификатор бронирования
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Бронирование успешно удалено
+        '401':
+          description: Неавторизованный доступ
+        '404':
+          description: Бронирования не существует
+        '500':
+          description: Внутренняя ошибка сервера
+      security:
+        - bearerAuth: []
+  /documents:
+    get:
+      summary: Получить список документов
+      description: Возвращает список всех документов, относящихся к пользователю.
+      responses:
+        '200':
+          description: Успешный ответ со списком документов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Document'
+        '401':
+          description: Неавторизованный доступ
+        '500':
+          description: Внутренняя ошибка сервера
+      security:
+        - bearerAuth: []
+  /reports:
+    get:
+      summary: Получение отчета
+      description: Генерация и получение отчета по указанным критериям.
+      parameters:
+        - name: reportType
+          in: query
+          required: true
+          description: Тип отчета (например, ежемесячный, квартальный)
+          schema:
+            type: string
+        - name: filters
+          in: query
+          required: false
+          description: Дополнительные фильтры для отчета
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Успешная генерация отчета
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Некорректный запрос
+        '401':
+          description: Неавторизованный доступ
+        '500':
+          description: Внутренняя ошибка сервера
+      security:
+        - bearerAuth: []
+components:
+  schemas:
+    Room:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Уникальный идентификатор комнаты
+        name:
+          type: string
+          description: Название комнаты
+        capacity:
+          type: integer
+          description: Максимальное количество людей в комнате
+        amenities:
+          type: array
+          items:
+            type: string
+          description: Удобства в комнате
+    AvailabilityResponse:
+      type: object
+      properties:
+        available:
+          type: boolean
+          description: Доступность комнаты на указанный период
+    BookingRequest:
+      type: object
+      properties:
+        roomId:
+          type: integer
+          description: Идентификатор комнаты
+        startDate:
+          type: string
+          format: date
+          description: Начало периода бронирования
+        endDate:
+          type: string
+          format: date
+          description: Окончание периода бронирования
+    BookingResponse:
+      type: object
+      properties:
+        bookingId:
+          type: integer
+          description: Уникальный идентификатор бронирования
+        roomId:
+          type: integer
+          description: Идентификатор забронированной комнаты
+        startDate:
+          type: string
+          format: date
+          description: Начало периода бронирования
+        endDate:
+          type: string
+          format: date
+          description: Окончание периода бронирования
+    Document:
+      type: object
+      properties:
+        documentId:
+          type: integer
+          description: Уникальный идентификатор документа
+        name:
+          type: string
+          description: Название документа
+        type:
+          type: string
+          description: Тип документа (PDF, DOC, JPG и т.д.)
+    Report:
+      type: object
+      properties:
+        reportId:
+          type: integer
+          description: Уникальный идентификатор отчета
+        type:
+          type: string
+          description: Тип отчета (месячный, квартальный и т.д.)
+        generatedAt:
+          type: string
+          format: date-time
+          description: Дата и время генерации отчета
+securitySchemes:
+  bearerAuth:
+    type: http
+    scheme: bearer
+    bearerFormat: JWT
